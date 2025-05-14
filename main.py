@@ -2,6 +2,8 @@ import aiohttp
 import time
 import re
 import logging
+import yaml
+from pathlib import Path
 from lxml import etree
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from astrbot.api.all import Context, AstrMessageEvent, CommandResult
@@ -9,6 +11,22 @@ from .data_handler import DataHandler
 from .rss import RSSItem
 from typing import List
 
+logger = logging.getLogger("astrbot")
+try:
+    metadata_path = Path(__file__).parent / "metadata.yaml"
+    logger.debug(f"尝试加载元数据文件: {metadata_path}")
+    with open(metadata_path, 'r', encoding='utf-8') as f:
+        metadata = yaml.safe_load(f)
+    logger.debug("metadata.yaml加载成功")
+except FileNotFoundError:
+    logger.error(f"未找到metadata.yaml文件，路径：{metadata_path}")
+    raise
+except yaml.YAMLError as ye:
+    logger.error(f"YAML解析失败，请检查格式: {str(ye)}")
+    raise
+except Exception as e:
+    logger.error(f"加载metadata.yaml时发生未知错误: {str(e)}")
+    raise
 class Main:
     def __init__(self, context: Context) -> None:
         self.NAMESPACE = "astrbot_plugin_rss"
